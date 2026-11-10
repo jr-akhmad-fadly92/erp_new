@@ -1,0 +1,67 @@
+MODUL QUALITY CONTROL
+=====================
+
+A. Tabel: qc_products
+Tujuan:
+- Menyimpan master produk yang diperiksa QC.
+Kolom utama:
+- id (varchar atau bigint, PK)
+- product_code (varchar, unique, nullable jika id sudah berupa kode)
+- name (varchar)
+- category (varchar)
+- standard (varchar)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: qc_inspections
+Tujuan:
+- Menyimpan hasil inspeksi QC.
+Kolom utama:
+- id (bigint, PK)
+- inspection_number (varchar, unique)
+- inspection_date (date)
+- product_id (FK -> qc_products.id)
+- quantity (decimal)
+- sample_size (decimal)
+- defect_found (int)
+- status (enum: passed, warning, failed)
+- inspector (varchar)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: qc_certificates
+Tujuan:
+- Menyimpan sertifikat QC yang diterbitkan.
+Kolom utama:
+- id (bigint, PK)
+- certificate_number (varchar, unique)
+- certificate_date (date)
+- product_id (FK -> qc_products.id)
+- batch_number (varchar)
+- issued_by (varchar)
+- valid_until (date)
+- grade (varchar)
+- status (enum: active, expired)
+- inspection_id (bigint, nullable, FK -> qc_inspections.id)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: qc_inspection_summary_monthly
+Tujuan:
+- Menyimpan ringkasan bulanan untuk grafik QC.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- total_inspections (int)
+- passed (int)
+- warning (int)
+- failed (int)
+- pass_rate (decimal)
+- defect_rate (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at

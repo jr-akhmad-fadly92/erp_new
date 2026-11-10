@@ -1,0 +1,38 @@
+MODUL PERUSAHAAN
+================
+
+Tabel utama yang digunakan:
+- companies
+- users (untuk menghitung jumlah user per perusahaan)
+- company_module_permissions atau tabel relasi modul perusahaan bila ingin menghitung modules secara real
+
+Struktur penting tabel companies:
+- id (bigint, PK)
+- code (varchar, unique, nullable)
+- name (varchar)
+- kota (varchar)
+- bidang (varchar, nullable)
+- alamat (text, nullable)
+- telepon (varchar, nullable)
+- npwp (varchar, nullable)
+- status (enum: aktif, trial, nonaktif)
+- modules (integer, default 0)
+- color (varchar, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+Tambahan opsional:
+
+A. Tabel: company_module_subscriptions
+Tujuan:
+- Menyimpan modul yang aktif untuk tiap perusahaan bila angka modules tidak ingin disimpan manual.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- module_id (bigint atau varchar key, FK -> modules.id / modules.key)
+- is_active (boolean)
+- activated_at (datetime, nullable)
+- expired_at (datetime, nullable)
+- created_at
+- updated_at

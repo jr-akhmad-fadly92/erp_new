@@ -1,0 +1,280 @@
+ALUR PENGGUNAAN APLIKASI ERP
+============================
+
+Dokumen ini menjelaskan alur penggunaan aplikasi dari awal sampai akhir.
+Dokumen disusun berdasarkan flow aplikasi frontend yang ada saat ini.
+
+==================================================
+1. MASUK KE APLIKASI
+==================================================
+
+Langkah:
+1. Buka aplikasi.
+2. Sistem akan mengarahkan user ke halaman Login.
+3. User memasukkan email dan password.
+4. Jika login berhasil, user masuk ke Dashboard.
+5. Jika login gagal, user tetap berada di halaman login.
+
+Tujuan tahap ini:
+- Memastikan user yang masuk adalah user yang sah.
+- Menentukan role user yang aktif.
+- Menentukan perusahaan aktif user.
+
+==================================================
+2. CEK DASHBOARD
+==================================================
+
+Langkah:
+1. Setelah login, user masuk ke Dashboard.
+2. Dashboard dipakai untuk melihat ringkasan awal sistem.
+3. Dari sidebar/menu, user memilih modul yang ingin digunakan.
+
+Tujuan tahap ini:
+- Memberi gambaran kondisi umum sistem.
+- Menjadi titik awal navigasi ke seluruh modul.
+
+==================================================
+3. SETUP AWAL OLEH ADMIN / DIREKTUR
+==================================================
+
+Tahap ini biasanya dilakukan sebelum operasional harian dimulai.
+
+3.1. Atur Data Perusahaan
+Langkah:
+1. Buka modul `Perusahaan`.
+2. Tambahkan perusahaan baru jika belum ada.
+3. Isi nama perusahaan, kota, bidang usaha, alamat, telepon, NPWP, status, dan warna identitas.
+4. Simpan data perusahaan.
+5. Pilih perusahaan untuk melihat detailnya.
+
+Hasil:
+- Perusahaan terdaftar di sistem.
+- Perusahaan siap dipakai untuk user dan permission.
+
+3.2. Buat Pengguna
+Langkah:
+1. Buka modul `Pengguna`.
+2. Klik `Tambah Pengguna`.
+3. Isi nama, email, telepon, role, perusahaan, status, password, dan konfirmasi password.
+4. Simpan data pengguna.
+5. Bila perlu, ubah password, pindahkan perusahaan, atau ubah status pengguna.
+
+Hasil:
+- User terdaftar dan bisa login ke sistem.
+- User sudah terkait ke perusahaan dan role tertentu.
+
+3.3. Atur Hak Akses
+Langkah:
+1. Buka modul `Hak Akses`.
+2. Pilih grup role atau lihat semua role.
+3. Atur modul mana yang boleh diakses oleh tiap role pada perusahaan aktif.
+4. Simpan perubahan hak akses.
+5. Jika perlu, lakukan reset ke default.
+
+Hasil:
+- Tiap role hanya melihat modul yang sesuai tugasnya.
+- Akses lebih aman dan terkontrol.
+
+==================================================
+4. MASTER DAN PROSES PEMBELIAN
+==================================================
+
+4.1. Purchasing
+Urutan umum:
+1. Buka modul `Purchasing`.
+2. Input atau perbarui data `Supplier`.
+3. Buat `Purchase Order` ke supplier.
+4. Pantau status PO: draft, sent, approved, atau closed.
+5. Saat invoice dari supplier diterima, input `Invoice Pembelian`.
+6. Pantau outstanding invoice pembelian.
+7. Lihat tab `Laporan` untuk melihat ringkasan nilai PO, invoice, outstanding, dan top supplier.
+
+Hasil:
+- Kebutuhan pembelian tercatat.
+- Supplier, PO, dan invoice pembelian terhubung.
+
+==================================================
+5. PROSES IMPORT
+==================================================
+
+Jika pembelian berasal dari impor, lanjut ke modul Import.
+
+Urutan umum:
+1. Buka modul `Import`.
+2. Input `Penerimaan Barang` untuk barang impor yang datang.
+3. Input proses `Clearance Barang` berdasarkan nomor clearance, BL, vessel, ETA, release, dan biaya.
+4. Input `Dokumen Impor` seperti BL, invoice commercial, packing list, certificate of origin, dan lainnya.
+5. Buka tab `Laporan` untuk melihat rekap clearance dan total biaya clearance.
+6. Export laporan ke CSV bila diperlukan.
+
+Hasil:
+- Barang impor, dokumen, dan biaya clearance tercatat rapi.
+
+==================================================
+6. PROSES GUDANG
+==================================================
+
+Setelah barang tersedia, gudang mengelola stok.
+
+Urutan umum:
+1. Buka modul `Gudang`.
+2. Input atau perbarui `Stock Barang`.
+3. Jika ada perpindahan antar lokasi, buat `Mutasi Gudang`.
+4. Jika ada pengecekan fisik, buat `Opname Stok`.
+5. Bandingkan system qty vs physical qty.
+6. Lihat tab `Laporan` untuk rekap mutasi.
+7. Export laporan ke CSV bila perlu.
+
+Hasil:
+- Posisi stok lebih terkontrol.
+- Selisih stok dapat diketahui lebih cepat.
+
+==================================================
+7. PROSES PENJUALAN
+==================================================
+
+Urutan umum:
+1. Buka modul `Sales`.
+2. Input atau perbarui master `Pelanggan`.
+3. Buat `Sales Order` untuk pesanan pelanggan.
+4. Jika ada target tim sales, input `Target Sales`.
+5. Setelah transaksi siap ditagih, buat `Invoice Penjualan`.
+6. Pantau invoice unpaid, partial, dan paid.
+7. Gunakan tab `Laporan` untuk melihat outstanding invoice dan export CSV.
+
+Hasil:
+- Seluruh proses penjualan dan penagihan tercatat.
+
+==================================================
+8. PROSES SUPERVISI SALES
+==================================================
+
+Jika ada role SPV Sales:
+1. Buka modul `SPV Sales`.
+2. Pantau tim sales.
+3. Pantau performa sales.
+4. Lakukan approval SO jika memang alurnya membutuhkan approval supervisor.
+5. Pantau target tim.
+
+Hasil:
+- Supervisor dapat memonitor performa dan approval penjualan.
+
+==================================================
+9. PROSES KEUANGAN
+==================================================
+
+Urutan umum:
+1. Buka modul `Finance`.
+2. Input atau perbarui akun `Kas & Bank`.
+3. Catat transaksi `Kas Masuk` dan `Kas Keluar`.
+4. Pastikan transaksi berstatus benar, misalnya draft atau posted.
+5. Buka tab `Laporan Keuangan` untuk melihat ringkasan pendapatan, beban, laba bersih, arus kas, dan grafik bulanan.
+6. Export laporan ke CSV.
+
+Hasil:
+- Arus kas dan saldo akun keuangan tercatat.
+
+==================================================
+10. PROSES AKUNTANSI
+==================================================
+
+Urutan umum:
+1. Buka modul `Accounting`.
+2. Input `Jurnal Akuntansi`.
+3. Pastikan nilai debit dan kredit seimbang.
+4. Simpan jurnal sebagai draft atau posted.
+5. Buka tab `Neraca & L/R`.
+6. Lihat ringkasan Neraca.
+7. Lihat Laporan Laba/Rugi.
+8. Gunakan grafik laba bersih dan aset vs ekuitas untuk analisis.
+9. Export laporan ke CSV atau PDF.
+
+Hasil:
+- Laporan keuangan akuntansi lebih siap untuk analisis dan closing.
+
+==================================================
+11. PROSES QUALITY CONTROL
+==================================================
+
+Urutan umum:
+1. Buka modul `Quality Control`.
+2. Input `Inspeksi QC` untuk hasil pemeriksaan barang.
+3. Tentukan status passed, warning, atau failed.
+4. Jika barang memenuhi syarat, buat `Sertifikat QC`.
+5. Lihat grafik hasil inspeksi dan trend pass rate.
+6. Export laporan QC ke CSV atau PDF.
+
+Hasil:
+- Kualitas barang tercatat dan terdokumentasi.
+
+==================================================
+12. MONITORING DAN AUDIT
+==================================================
+
+Urutan umum:
+1. Buka modul `Audit Log`.
+2. Cari histori aktivitas berdasarkan user, action, modul, atau reference.
+3. Filter aktivitas berdasarkan CREATE, UPDATE, DELETE, VIEW, atau EXPORT.
+4. Buka tab `Laporan Aktivitas`.
+5. Analisis aktivitas bulanan, distribusi action, module usage, dan top users.
+6. Export log ke CSV atau PDF.
+
+Hasil:
+- Aktivitas user terdokumentasi.
+- Sistem lebih mudah diaudit.
+
+==================================================
+13. SIKLUS BISNIS SEDERHANA DARI AWAL SAMPAI AKHIR
+==================================================
+
+Contoh alur kerja lengkap:
+1. Admin membuat perusahaan.
+2. Admin membuat user dan role.
+3. Admin mengatur hak akses.
+4. Tim purchasing membuat supplier dan PO.
+5. Jika pembelian impor, tim import membuat clearance dan dokumen.
+6. Barang masuk ke gudang dan dicatat sebagai stock.
+7. Tim gudang melakukan mutasi atau opname jika diperlukan.
+8. Tim sales membuat pelanggan, sales order, dan invoice penjualan.
+9. Tim finance mencatat pembayaran masuk/keluar dan memantau arus kas.
+10. Tim accounting membuat jurnal dan menyusun laporan neraca serta laba/rugi.
+11. Tim QC melakukan inspeksi dan menerbitkan sertifikat QC bila diperlukan.
+12. Manajemen memantau dashboard, laporan, dan audit log.
+
+==================================================
+14. PERAN MASING-MASING BAGIAN SECARA SINGKAT
+==================================================
+
+- Super Admin / Direktur:
+  Mengelola perusahaan, user, hak akses, dan memantau seluruh sistem.
+
+- Purchasing:
+  Mengelola supplier, purchase order, dan invoice pembelian.
+
+- Import:
+  Mengelola penerimaan barang impor, clearance, dan dokumen impor.
+
+- Gudang:
+  Mengelola stok, mutasi barang, dan opname stok.
+
+- Sales / Sales Manager / Admin Penjualan:
+  Mengelola pelanggan, sales order, target sales, dan invoice penjualan.
+
+- SPV Sales:
+  Mengawasi performa dan approval tim sales.
+
+- Finance:
+  Mengelola kas, bank, dan laporan arus kas/keuangan.
+
+- Accounting:
+  Mengelola jurnal dan laporan akuntansi.
+
+- QC:
+  Mengelola inspeksi dan sertifikat kualitas.
+
+==================================================
+15. PENUTUP
+==================================================
+
+Alur di atas adalah alur ideal penggunaan aplikasi berdasarkan modul yang tersedia saat ini.
+Saat backend dan integrasi API sudah lengkap, alur ini bisa diperluas menjadi SOP operasional yang lebih detail per divisi.

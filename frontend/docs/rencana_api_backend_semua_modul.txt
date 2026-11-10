@@ -1,0 +1,1494 @@
+RENCANA API BACKEND - SEMUA MODUL ERP
+=====================================
+
+Tujuan:
+- Menjadi kontrak API awal antara frontend dan backend.
+- Backend tinggal menyesuaikan endpoint, payload, dan format response yang diminta frontend.
+
+Catatan umum:
+- Base URL: /api
+- Format response disarankan konsisten agar frontend mudah integrasi.
+- Semua endpoint private wajib pakai Bearer token kecuali login.
+
+--------------------------------------------------
+1) STANDAR RESPONSE DAN ERROR
+--------------------------------------------------
+
+A. Response sukses (single object)
+{
+  "success": true,
+  "message": "ok",
+  "data": { ... }
+}
+
+B. Response sukses (list + pagination)
+{
+  "success": true,
+  "message": "ok",
+  "data": [ ... ],
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 120,
+    "last_page": 6
+  }
+}
+
+C. Response error validasi
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "field_name": ["field is required"]
+  }
+}
+
+D. Response error umum
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+--------------------------------------------------
+2) AUTH
+--------------------------------------------------
+
+POST   /auth/login
+Body:
+- email (string)
+- password (string)
+Response data:
+- token
+- user: { id, company_id, role_id, name, email, phone, status }
+
+POST   /auth/logout
+Response data:
+- message
+
+POST   /auth/refresh
+Response data:
+- token
+
+GET    /auth/me
+Response data:
+- { id, company_id, role_id, name, email, phone, status }
+
+PUT    /auth/password
+Body:
+- current_password
+- new_password
+- new_password_confirmation
+
+--------------------------------------------------
+3) MASTER UMUM
+--------------------------------------------------
+
+A. Companies
+GET    /companies?search=&status=&page=&per_page=
+GET    /companies/{id}
+POST   /companies
+PUT    /companies/{id}
+DELETE /companies/{id}
+GET    /companies/{id}/stats
+
+Payload create/update company:
+- code (optional)
+- name
+- kota
+- bidang
+- alamat
+- telepon
+- npwp
+- status (aktif/trial/nonaktif)
+- color
+- is_active
+
+B. Roles
+GET    /roles
+GET    /roles/{id}
+
+C. Modules
+GET    /modules
+GET    /modules?group_name=
+GET    /modules/{id_or_key}
+
+--------------------------------------------------
+4) PENGGUNA (MANAGEMENT USER)
+--------------------------------------------------
+
+GET    /users?company_id=&role_id=&status=&search=&page=&per_page=
+GET    /users/{id}
+POST   /users
+PUT    /users/{id}
+PATCH  /users/{id}/status
+PUT    /users/{id}/password
+PATCH  /users/{id}/move-company
+DELETE /users/{id}
+
+Payload create user:
+- company_id
+- role_id
+- name
+- email
+- phone (optional)
+- password
+- password_confirmation
+- status (aktif/nonaktif)
+
+Payload update user:
+- company_id
+- role_id
+- name
+- email
+- phone
+- status
+
+Payload move company:
+- to_company_id
+- notes (optional)
+
+--------------------------------------------------
+5) HAK AKSES
+--------------------------------------------------
+
+GET    /permissions?company_id=
+POST   /permissions/batch
+DELETE /permissions/reset?company_id=
+GET    /permissions/user/{user_id}
+
+Payload save batch:
+{
+  "company_id": 1,
+  "permissions": [
+    { "module_id": "m03", "role_id": 3, "allowed": true },
+    { "module_id": "m04", "role_id": 3, "allowed": false }
+  ]
+}
+
+--------------------------------------------------
+6) PURCHASING
+--------------------------------------------------
+
+A. Suppliers
+GET    /purchasing/suppliers?company_id=&status=&search=&page=&per_page=
+GET    /purchasing/suppliers/{id}
+POST   /purchasing/suppliers
+PUT    /purchasing/suppliers/{id}
+DELETE /purchasing/suppliers/{id}
+
+Payload supplier:
+- code
+- name
+- pic
+- phone
+- email
+- city
+- address
+- payment_term
+- status
+- company_id
+
+B. Purchase Orders
+GET    /purchasing/purchase-orders?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /purchasing/purchase-orders/{id}
+POST   /purchasing/purchase-orders
+PUT    /purchasing/purchase-orders/{id}
+PATCH  /purchasing/purchase-orders/{id}/status
+DELETE /purchasing/purchase-orders/{id}
+
+Payload purchase order:
+- po_number
+- supplier_id
+- po_date
+- expected_date
+- item_name
+- qty
+- unit_price
+- status (draft/sent/approved/closed)
+- notes
+- company_id
+
+C. Purchase Invoices
+GET    /purchasing/invoices?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /purchasing/invoices/{id}
+POST   /purchasing/invoices
+PUT    /purchasing/invoices/{id}
+PATCH  /purchasing/invoices/{id}/status
+DELETE /purchasing/invoices/{id}
+
+Payload invoice pembelian:
+- invoice_number
+- po_id
+- supplier_id
+- invoice_date
+- due_date
+- total
+- paid_amount
+- status (unpaid/partial/paid/overdue)
+- notes
+- company_id
+
+D. Laporan Purchasing
+GET    /purchasing/reports/summary?company_id=&month=&year=
+Response data contoh:
+- po_total
+- invoice_total
+- outstanding
+- top_supplier: { supplier_id, name, total }
+
+GET    /purchasing/reports/export.csv?company_id=&month=&year=
+
+--------------------------------------------------
+7) IMPORT
+--------------------------------------------------
+
+A. Goods Receipts
+GET    /imports/goods-receipts?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /imports/goods-receipts/{id}
+POST   /imports/goods-receipts
+PUT    /imports/goods-receipts/{id}
+DELETE /imports/goods-receipts/{id}
+
+Payload goods receipt:
+- receipt_number
+- po_number
+- supplier_name
+- receipt_date
+- warehouse_name
+- item_name
+- qty_received
+- unit
+- status (completed/partial/pending)
+- notes
+- company_id
+
+B. Clearances
+GET    /imports/clearances?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /imports/clearances/{id}
+POST   /imports/clearances
+PUT    /imports/clearances/{id}
+DELETE /imports/clearances/{id}
+
+Payload clearance:
+- clearance_number
+- bl_number
+- vessel_name
+- eta_date
+- release_date (nullable)
+- ppjk
+- customs_office
+- clearance_cost
+- status (released/on-progress/hold)
+- notes
+- company_id
+
+C. Import Documents
+GET    /imports/documents?company_id=&clearance_id=&status=&search=&page=&per_page=
+GET    /imports/documents/{id}
+POST   /imports/documents
+PUT    /imports/documents/{id}
+DELETE /imports/documents/{id}
+
+Payload dokumen:
+- doc_number
+- clearance_id
+- doc_type
+- file_name
+- file_path (optional)
+- issue_date
+- expire_date (nullable)
+- status (valid/review/expired)
+- notes
+- company_id
+
+D. Laporan Import
+GET    /imports/reports/clearance?company_id=&month=&year=
+GET    /imports/reports/export.csv?company_id=&month=&year=
+
+--------------------------------------------------
+8) GUDANG
+--------------------------------------------------
+
+A. Stock Items
+GET    /warehouse/stocks?company_id=&status=&search=&warehouse=&page=&per_page=
+GET    /warehouse/stocks/{id}
+POST   /warehouse/stocks
+PUT    /warehouse/stocks/{id}
+DELETE /warehouse/stocks/{id}
+
+Payload stock:
+- sku
+- item_name
+- category
+- warehouse_name
+- stock_qty
+- min_stock
+- unit
+- avg_cost
+- status (aman/minimum/habis)
+- notes
+- company_id
+
+B. Warehouse Mutations
+GET    /warehouse/mutations?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /warehouse/mutations/{id}
+POST   /warehouse/mutations
+PUT    /warehouse/mutations/{id}
+PATCH  /warehouse/mutations/{id}/status
+DELETE /warehouse/mutations/{id}
+
+Payload mutation:
+- mutation_number
+- mutation_date
+- sku
+- item_name
+- from_warehouse_name
+- to_warehouse_name
+- qty
+- unit
+- status (draft/posted)
+- notes
+- company_id
+
+C. Stock Opnames
+GET    /warehouse/opnames?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /warehouse/opnames/{id}
+POST   /warehouse/opnames
+PUT    /warehouse/opnames/{id}
+PATCH  /warehouse/opnames/{id}/status
+DELETE /warehouse/opnames/{id}
+
+Payload opname:
+- opname_number
+- opname_date
+- warehouse_name
+- sku
+- item_name
+- system_qty
+- physical_qty
+- difference_qty
+- reason
+- status (review/adjusted/closed)
+- company_id
+
+D. Laporan Gudang
+GET    /warehouse/reports/mutations?company_id=&month=&year=
+GET    /warehouse/reports/export.csv?company_id=&month=&year=
+
+--------------------------------------------------
+9) SALES
+--------------------------------------------------
+
+A. Customers
+GET    /customers?company_id=&status=&search=&page=&per_page=
+GET    /customers/{id}
+POST   /customers
+PUT    /customers/{id}
+DELETE /customers/{id}
+
+Payload customer:
+- code
+- name
+- city
+- pic
+- phone
+- email
+- status (aktif/nonaktif)
+- credit_limit
+- company_id
+
+B. Sales Orders
+GET    /sales-orders?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /sales-orders/{id}
+POST   /sales-orders
+PUT    /sales-orders/{id}
+PATCH  /sales-orders/{id}/status
+DELETE /sales-orders/{id}
+
+Payload sales order:
+- so_number
+- so_date
+- customer_id
+- item_name
+- qty
+- unit_price
+- status (draft/approved/closed)
+- notes
+- company_id
+
+C. Sales Targets
+GET    /sales-targets?company_id=&status=&search=&period=&page=&per_page=
+GET    /sales-targets/{id}
+POST   /sales-targets
+PUT    /sales-targets/{id}
+DELETE /sales-targets/{id}
+
+Payload target:
+- period
+- sales_name
+- region
+- target_amount
+- achieved_amount
+- status (on-track/under/achieved)
+- company_id
+
+D. Sales Invoices
+GET    /sales-invoices?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /sales-invoices/{id}
+POST   /sales-invoices
+PUT    /sales-invoices/{id}
+PATCH  /sales-invoices/{id}/status
+DELETE /sales-invoices/{id}
+
+Payload invoice sales:
+- invoice_number
+- so_id
+- customer_id
+- invoice_date
+- due_date
+- total
+- paid_amount
+- status (unpaid/partial/paid)
+- company_id
+
+E. Laporan Sales
+GET    /sales/reports/invoices?company_id=&month=&year=
+GET    /sales/reports/export.csv?company_id=&month=&year=
+
+--------------------------------------------------
+10) SPV SALES
+--------------------------------------------------
+
+GET    /spv-sales/dashboard?company_id=&month=&year=
+GET    /spv-sales/team?company_id=
+GET    /spv-sales/performance?company_id=&user_id=&from=&to=
+PATCH  /spv-sales/orders/{id}/approve
+POST   /spv-sales/targets
+
+Payload approve order:
+- action (approve/reject)
+- notes
+
+Payload set target tim:
+- company_id
+- user_id
+- year
+- month
+- target_amount
+
+--------------------------------------------------
+11) FINANCE
+--------------------------------------------------
+
+A. Cash & Bank Accounts
+GET    /finance/accounts?company_id=&status=&search=&page=&per_page=
+GET    /finance/accounts/{id}
+POST   /finance/accounts
+PUT    /finance/accounts/{id}
+DELETE /finance/accounts/{id}
+
+Payload account:
+- account_code
+- account_name
+- account_type (kas/bank)
+- bank_name
+- account_number
+- currency
+- balance
+- status (aktif/nonaktif)
+- company_id
+
+B. Cash & Bank Transactions
+GET    /finance/transactions?company_id=&status=&trx_type=&search=&month=&year=&page=&per_page=
+GET    /finance/transactions/{id}
+POST   /finance/transactions
+PUT    /finance/transactions/{id}
+PATCH  /finance/transactions/{id}/status
+DELETE /finance/transactions/{id}
+
+Payload transaction:
+- trx_number
+- trx_date
+- account_id
+- trx_type (masuk/keluar)
+- category
+- reference
+- description
+- amount
+- status (draft/posted)
+- company_id
+
+C. Laporan Finance
+GET    /finance/reports/monthly?company_id=&year=
+GET    /finance/reports/summary?company_id=&year=
+GET    /finance/reports/export.csv?company_id=&year=
+
+--------------------------------------------------
+12) ACCOUNTING
+--------------------------------------------------
+
+A. Journals
+GET    /accounting/journals?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /accounting/journals/{id}
+POST   /accounting/journals
+PUT    /accounting/journals/{id}
+PATCH  /accounting/journals/{id}/status
+DELETE /accounting/journals/{id}
+
+Payload journal (header + lines disarankan):
+- journal_number
+- journal_date
+- description
+- reference
+- status (draft/posted)
+- company_id
+- lines: [
+    { line_no, account_code, account_name, position: debit, amount },
+    { line_no, account_code, account_name, position: credit, amount }
+  ]
+
+B. Chart of Accounts
+GET    /accounting/chart-of-accounts?company_id=&type=&status=&search=
+GET    /accounting/chart-of-accounts/{id}
+POST   /accounting/chart-of-accounts
+PUT    /accounting/chart-of-accounts/{id}
+DELETE /accounting/chart-of-accounts/{id}
+
+C. Reports (Neraca & L/R)
+GET    /accounting/reports/balance-sheet?company_id=&month=&year=
+GET    /accounting/reports/income-statement?company_id=&month=&year=
+GET    /accounting/reports/monthly-summary?company_id=&year=
+GET    /accounting/reports/export.csv?company_id=&month=&year=
+GET    /accounting/reports/export.pdf?company_id=&month=&year=
+
+--------------------------------------------------
+13) QUALITY CONTROL (QC)
+--------------------------------------------------
+
+A. Inspections
+GET    /qc/inspections?company_id=&status=&search=&month=&year=&page=&per_page=
+GET    /qc/inspections/{id}
+POST   /qc/inspections
+PUT    /qc/inspections/{id}
+DELETE /qc/inspections/{id}
+
+Payload inspection:
+- inspection_number
+- inspection_date
+- product_id
+- product_name
+- quantity
+- sample_size
+- defect_found
+- status (passed/warning/failed)
+- inspector
+- notes
+- company_id
+
+B. Certificates
+GET    /qc/certificates?company_id=&status=&search=&page=&per_page=
+GET    /qc/certificates/{id}
+POST   /qc/certificates
+PUT    /qc/certificates/{id}
+DELETE /qc/certificates/{id}
+
+Payload certificate:
+- certificate_number
+- certificate_date
+- product_id
+- product_name
+- batch_number
+- issued_by
+- valid_until
+- grade
+- status (active/expired)
+- company_id
+
+C. Reports
+GET    /qc/reports/summary?company_id=&month=&year=
+GET    /qc/reports/monthly-trend?company_id=&year=
+GET    /qc/reports/export.csv?company_id=&month=&year=
+GET    /qc/reports/export.pdf?company_id=&month=&year=
+
+--------------------------------------------------
+14) AUDIT LOG
+--------------------------------------------------
+
+A. Logs
+GET    /audit-logs?company_id=&action=&status=&module=&search=&from=&to=&page=&per_page=
+GET    /audit-logs/{id}
+
+B. Reports
+GET    /audit-logs/reports/activity-summary?company_id=&year=
+GET    /audit-logs/reports/module-usage?company_id=&year=
+GET    /audit-logs/reports/action-distribution?company_id=&year=
+GET    /audit-logs/reports/export.csv?company_id=&from=&to=
+GET    /audit-logs/reports/export.pdf?company_id=&from=&to=
+
+C. Write log (internal service, optional public endpoint)
+POST   /audit-logs
+Payload:
+- event_time
+- user_id
+- user_name
+- action
+- module
+- reference
+- description
+- ip_address
+- status
+- changes_json
+- company_id
+
+--------------------------------------------------
+15) DASHBOARD
+--------------------------------------------------
+
+GET    /dashboard/summary?company_id=&month=&year=
+Response data minimal:
+- purchasing_summary
+- import_summary
+- warehouse_summary
+- sales_summary
+- finance_summary
+- accounting_summary
+- qc_summary
+- audit_summary
+
+GET    /dashboard/charts?company_id=&month=&year=
+Response data minimal:
+- sales_trend
+- finance_trend
+- qc_trend
+- activity_trend
+
+--------------------------------------------------
+16) EXPORT STANDAR (CSV/PDF)
+--------------------------------------------------
+
+A. Export CSV
+- Gunakan endpoint khusus report/export.csv per modul.
+- Header Content-Type: text/csv
+- Header Content-Disposition: attachment; filename="nama-file.csv"
+
+B. Export PDF
+- Gunakan endpoint khusus report/export.pdf per modul.
+- Header Content-Type: application/pdf
+- Header Content-Disposition: attachment; filename="nama-file.pdf"
+
+--------------------------------------------------
+17) KEBUTUHAN VALIDASI MINIMAL BACKEND
+--------------------------------------------------
+
+- Semua create/update wajib validasi field required.
+- Validasi format email, tanggal, angka, dan enum status.
+- Validasi relasi FK (company_id, supplier_id, customer_id, dll).
+- Untuk endpoint status update, batasi hanya nilai status yang valid.
+- Untuk endpoint list, dukung search, filter, dan pagination.
+
+--------------------------------------------------
+18) URUTAN IMPLEMENTASI BACKEND (SARAN)
+--------------------------------------------------
+
+1. Auth + Master (companies, users, roles, modules, permissions)
+2. Purchasing + Sales (core transaksi)
+3. Import + Gudang (logistik)
+4. Finance + Accounting (keuangan)
+5. QC + Audit Log (kontrol kualitas dan monitoring)
+6. Dashboard aggregations + export CSV/PDF
+
+Dokumen selesai.
+RENCANA API BACKEND SEMUA MODUL (KONTRAK UNTUK TIM BACKEND)
+=============================================================
+
+Tujuan dokumen:
+- Menjadi acuan endpoint API yang dibutuhkan frontend saat ini.
+- Memudahkan tim backend menyesuaikan route, payload, dan response data.
+- Menyeragamkan pola response agar integrasi lebih cepat.
+
+Base URL:
+- /api
+Contoh:
+- http://localhost:8000/api
+
+==================================================
+A. STANDAR RESPONSE
+==================================================
+
+1) Response sukses (list)
+{
+  "success": true,
+  "message": "ok",
+  "data": [ ... ],
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 200,
+    "last_page": 10
+  }
+}
+
+2) Response sukses (detail/create/update)
+{
+  "success": true,
+  "message": "ok",
+  "data": { ... }
+}
+
+3) Response gagal validasi (422)
+{
+  "success": false,
+  "message": "validation error",
+  "errors": {
+    "field_name": ["pesan error"]
+  }
+}
+
+4) Response gagal umum
+{
+  "success": false,
+  "message": "error message"
+}
+
+Catatan:
+- Frontend saat ini membaca body JSON dan message/error.
+- Gunakan header Bearer token untuk endpoint private.
+
+==================================================
+B. AUTHENTICATION
+==================================================
+
+1. POST /auth/login
+Body:
+- email
+- password
+Response data:
+- token
+- user: { id, name, email, role_id, company_id, status }
+
+2. POST /auth/logout
+Header: Authorization Bearer
+Response data:
+- message
+
+3. POST /auth/refresh
+Header: Authorization Bearer
+Response data:
+- token
+
+4. GET /auth/me
+Header: Authorization Bearer
+Response data:
+- id, name, email, role_id, company_id, status
+
+5. PUT /auth/password
+Header: Authorization Bearer
+Body:
+- current_password
+- new_password
+- new_password_confirmation
+
+==================================================
+C. MASTER AKSES DAN PERUSAHAAN
+==================================================
+
+C1. Companies
+1. GET /companies
+Query opsional:
+- search
+- status
+- page
+- per_page
+
+2. GET /companies/{id}
+
+3. POST /companies
+Body:
+- code (opsional)
+- name
+- kota
+- bidang
+- alamat
+- telepon
+- npwp
+- status (aktif|trial|nonaktif)
+- modules (opsional)
+- color
+- is_active
+
+4. PUT /companies/{id}
+Body: field yang diupdate
+
+5. DELETE /companies/{id}
+
+6. GET /companies/{id}/stats
+Response data:
+- user_count
+- module_count
+- users_by_role: [{ role_id, role_name, count }]
+
+C2. Users (Pengguna)
+1. GET /users
+Query opsional:
+- company_id
+- role_id
+- status
+- search
+- page
+- per_page
+
+2. GET /users/{id}
+
+3. POST /users
+Body:
+- company_id
+- role_id
+- name
+- email
+- phone
+- password
+- password_confirmation
+- status (aktif|nonaktif)
+
+4. PUT /users/{id}
+Body:
+- company_id
+- role_id
+- name
+- email
+- phone
+- status
+
+5. PUT /users/{id}/password
+Body:
+- new_password
+- new_password_confirmation
+
+6. PATCH /users/{id}/status
+Body:
+- status (aktif|nonaktif)
+
+7. DELETE /users/{id}
+
+8. POST /users/{id}/move-company (opsional, disarankan)
+Body:
+- to_company_id
+- notes (opsional)
+Response data:
+- user
+- movement_history (opsional)
+
+C3. Roles
+1. GET /roles
+Response data minimal:
+- id, name, short_code, group_name, color
+
+C4. Modules
+1. GET /modules
+Response data minimal:
+- id, key, label, icon, group_name, is_active
+
+C5. Permissions (Hak Akses)
+1. GET /permissions?company_id={id}
+Response data:
+- [{ module_id, role_id, allowed }]
+
+2. POST /permissions/batch
+Body:
+{
+  "company_id": 1,
+  "permissions": [
+    { "module_id": "m03", "role_id": 3, "allowed": true }
+  ]
+}
+
+3. DELETE /permissions/reset?company_id={id}
+
+4. GET /permissions/user/{userId}
+Response data:
+- module_ids: ["m01","m03",...]
+
+==================================================
+D. DASHBOARD UMUM
+==================================================
+
+1. GET /dashboard/summary?company_id={id}&month={MM}&year={YYYY}
+Response data contoh:
+- sales_total
+- purchase_total
+- cash_balance
+- net_profit
+- stock_value
+- pending_approvals
+
+2. GET /dashboard/charts?company_id={id}&month={MM}&year={YYYY}
+Response data contoh:
+- sales_vs_purchase_monthly
+- cashflow_monthly
+- top_products
+
+==================================================
+E. MODUL PURCHASING
+==================================================
+
+E1. Suppliers
+1. GET /purchasing/suppliers
+Query:
+- company_id
+- search
+- status
+- page
+- per_page
+
+2. GET /purchasing/suppliers/{id}
+3. POST /purchasing/suppliers
+4. PUT /purchasing/suppliers/{id}
+5. DELETE /purchasing/suppliers/{id}
+
+Payload field supplier:
+- code
+- name
+- pic
+- phone
+- email
+- city
+- address
+- payment_term
+- status
+- company_id
+
+E2. Purchase Orders
+1. GET /purchasing/purchase-orders
+Query:
+- company_id
+- search
+- status
+- supplier_id
+- from
+- to
+- page
+- per_page
+
+2. GET /purchasing/purchase-orders/{id}
+3. POST /purchasing/purchase-orders
+4. PUT /purchasing/purchase-orders/{id}
+5. PATCH /purchasing/purchase-orders/{id}/status
+6. DELETE /purchasing/purchase-orders/{id}
+
+Payload PO:
+- po_number
+- supplier_id
+- po_date
+- expected_date
+- item_name
+- qty
+- unit_price
+- status (draft|sent|approved|closed)
+- notes
+- company_id
+
+E3. Purchase Invoices
+1. GET /purchasing/invoices
+Query:
+- company_id
+- search
+- status
+- supplier_id
+- from
+- to
+- page
+- per_page
+
+2. GET /purchasing/invoices/{id}
+3. POST /purchasing/invoices
+4. PUT /purchasing/invoices/{id}
+5. PATCH /purchasing/invoices/{id}/status
+6. DELETE /purchasing/invoices/{id}
+
+Payload invoice:
+- invoice_number
+- po_id
+- supplier_id
+- invoice_date
+- due_date
+- total
+- paid_amount
+- status (unpaid|partial|paid|overdue)
+- notes
+- company_id
+
+E4. Purchasing Report
+1. GET /purchasing/reports/summary?company_id=&month=&year=
+2. GET /purchasing/reports/export-csv?company_id=&month=&year=
+
+==================================================
+F. MODUL IMPORT
+==================================================
+
+F1. Goods Receipts
+1. GET /imports/goods-receipts
+2. GET /imports/goods-receipts/{id}
+3. POST /imports/goods-receipts
+4. PUT /imports/goods-receipts/{id}
+5. DELETE /imports/goods-receipts/{id}
+
+Payload:
+- receipt_number
+- po_number
+- supplier_name
+- receipt_date
+- warehouse_name
+- item_name
+- qty_received
+- unit
+- status (completed|partial|pending)
+- notes
+- company_id
+
+F2. Clearances
+1. GET /imports/clearances
+2. GET /imports/clearances/{id}
+3. POST /imports/clearances
+4. PUT /imports/clearances/{id}
+5. DELETE /imports/clearances/{id}
+
+Payload:
+- clearance_number
+- bl_number
+- vessel_name
+- eta_date
+- release_date
+- ppjk
+- customs_office
+- status (released|on-progress|hold)
+- clearance_cost
+- notes
+- company_id
+
+F3. Import Documents
+1. GET /imports/documents
+2. GET /imports/documents/{id}
+3. POST /imports/documents
+4. PUT /imports/documents/{id}
+5. DELETE /imports/documents/{id}
+
+Payload:
+- doc_number
+- clearance_id
+- doc_type
+- file_name
+- file_path (opsional)
+- issue_date
+- expire_date
+- status (valid|review|expired)
+- notes
+- company_id
+
+F4. Import Report
+1. GET /imports/reports/clearance?company_id=&month=&year=
+2. GET /imports/reports/export-csv?company_id=&month=&year=
+
+==================================================
+G. MODUL GUDANG
+==================================================
+
+G1. Stock Items
+1. GET /warehouses/stocks
+2. GET /warehouses/stocks/{id}
+3. POST /warehouses/stocks
+4. PUT /warehouses/stocks/{id}
+5. DELETE /warehouses/stocks/{id}
+
+Payload:
+- sku
+- item_name
+- category
+- warehouse_id (opsional)
+- warehouse_name
+- stock_qty
+- min_stock
+- unit
+- avg_cost
+- status (aman|minimum|habis)
+- notes
+- company_id
+
+G2. Warehouse Mutations
+1. GET /warehouses/mutations
+2. GET /warehouses/mutations/{id}
+3. POST /warehouses/mutations
+4. PUT /warehouses/mutations/{id}
+5. PATCH /warehouses/mutations/{id}/status
+6. DELETE /warehouses/mutations/{id}
+
+Payload:
+- mutation_number
+- mutation_date
+- sku
+- item_name
+- from_warehouse_id (opsional)
+- from_warehouse_name
+- to_warehouse_id (opsional)
+- to_warehouse_name
+- qty
+- unit
+- status (draft|posted)
+- notes
+- company_id
+
+G3. Stock Opnames
+1. GET /warehouses/opnames
+2. GET /warehouses/opnames/{id}
+3. POST /warehouses/opnames
+4. PUT /warehouses/opnames/{id}
+5. PATCH /warehouses/opnames/{id}/status
+6. DELETE /warehouses/opnames/{id}
+
+Payload:
+- opname_number
+- opname_date
+- warehouse_id (opsional)
+- warehouse_name
+- sku
+- item_name
+- system_qty
+- physical_qty
+- difference_qty
+- reason
+- status (review|adjusted|closed)
+- company_id
+
+G4. Gudang Report
+1. GET /warehouses/reports/mutations?company_id=&month=&year=
+2. GET /warehouses/reports/export-csv?company_id=&month=&year=
+
+==================================================
+H. MODUL SALES DAN SPV SALES
+==================================================
+
+H1. Customers
+1. GET /customers
+2. GET /customers/{id}
+3. POST /customers
+4. PUT /customers/{id}
+5. DELETE /customers/{id}
+
+Payload:
+- code
+- name
+- city
+- pic
+- phone
+- email
+- status (aktif|nonaktif)
+- credit_limit
+- company_id
+
+H2. Sales Orders
+1. GET /sales-orders
+2. GET /sales-orders/{id}
+3. POST /sales-orders
+4. PUT /sales-orders/{id}
+5. PATCH /sales-orders/{id}/status
+6. DELETE /sales-orders/{id}
+
+Payload:
+- so_number
+- so_date
+- customer_id
+- item_name
+- qty
+- unit_price
+- status (draft|approved|closed)
+- notes
+- company_id
+
+H3. Sales Targets
+1. GET /sales-targets
+2. GET /sales-targets/{id}
+3. POST /sales-targets
+4. PUT /sales-targets/{id}
+5. DELETE /sales-targets/{id}
+6. GET /sales-targets/achievement
+
+Payload:
+- period
+- sales_name
+- region
+- target_amount
+- achieved_amount
+- status (on-track|under|achieved)
+- company_id
+
+H4. Sales Invoices
+1. GET /sales-invoices
+2. GET /sales-invoices/{id}
+3. POST /sales-invoices
+4. PUT /sales-invoices/{id}
+5. PATCH /sales-invoices/{id}/status
+6. DELETE /sales-invoices/{id}
+
+Payload:
+- invoice_number
+- so_id
+- customer_id
+- invoice_date
+- due_date
+- total
+- paid_amount
+- status (unpaid|partial|paid)
+- company_id
+
+H5. Sales Reports
+1. GET /sales/reports/invoices?company_id=&month=&year=
+2. GET /sales/reports/export-csv?company_id=&month=&year=
+
+H6. SPV Sales
+1. GET /spv-sales/dashboard?company_id=&month=&year=
+2. GET /spv-sales/team?company_id=
+3. GET /spv-sales/performance?company_id=&user_id=&from=&to=
+4. PATCH /spv-sales/orders/{id}/approve
+Body:
+- action (approve|reject)
+- notes
+5. POST /spv-sales/targets
+
+==================================================
+I. MODUL FINANCE
+==================================================
+
+I1. Cash/Bank Accounts
+1. GET /finance/accounts
+2. GET /finance/accounts/{id}
+3. POST /finance/accounts
+4. PUT /finance/accounts/{id}
+5. DELETE /finance/accounts/{id}
+
+Payload:
+- account_code
+- account_name
+- account_type (kas|bank)
+- bank_name
+- account_number
+- currency
+- balance
+- status (aktif|nonaktif)
+- company_id
+
+I2. Cash/Bank Transactions
+1. GET /finance/transactions
+2. GET /finance/transactions/{id}
+3. POST /finance/transactions
+4. PUT /finance/transactions/{id}
+5. PATCH /finance/transactions/{id}/status
+6. DELETE /finance/transactions/{id}
+
+Payload:
+- trx_number
+- trx_date
+- account_id
+- trx_type (masuk|keluar)
+- category
+- reference
+- description
+- amount
+- status (draft|posted)
+- company_id
+
+I3. Finance Reports
+1. GET /finance/reports/monthly?company_id=&year=
+2. GET /finance/reports/summary?company_id=&year=
+3. GET /finance/reports/export-csv?company_id=&year=
+
+==================================================
+J. MODUL ACCOUNTING
+==================================================
+
+J1. Journals
+1. GET /accounting/journals
+2. GET /accounting/journals/{id}
+3. POST /accounting/journals
+4. PUT /accounting/journals/{id}
+5. DELETE /accounting/journals/{id}
+
+Payload minimal jurnal (sesuai frontend saat ini):
+- journal_number
+- journal_date
+- description
+- debit_account
+- debit_amount
+- credit_account
+- credit_amount
+- reference
+- status (draft|posted)
+- company_id
+
+Payload ideal produksi (disarankan):
+- journal_number
+- journal_date
+- description
+- reference
+- status
+- lines: [{ account_code, position: debit|credit, amount }]
+- company_id
+
+J2. Chart of Accounts
+1. GET /accounting/coa
+2. GET /accounting/coa/{id}
+3. POST /accounting/coa
+4. PUT /accounting/coa/{id}
+5. DELETE /accounting/coa/{id}
+
+J3. Statements
+1. GET /accounting/statements/balance-sheet?company_id=&month=&year=
+2. GET /accounting/statements/income-statement?company_id=&month=&year=
+3. GET /accounting/statements/monthly?company_id=&year=
+4. GET /accounting/statements/export-csv?company_id=&month=&year=
+5. GET /accounting/statements/export-pdf?company_id=&month=&year=
+
+==================================================
+K. MODUL QUALITY CONTROL (QC)
+==================================================
+
+K1. Products (opsional jika master produk dipisah)
+1. GET /qc/products
+2. GET /qc/products/{id}
+3. POST /qc/products
+4. PUT /qc/products/{id}
+5. DELETE /qc/products/{id}
+
+K2. Inspections
+1. GET /qc/inspections
+2. GET /qc/inspections/{id}
+3. POST /qc/inspections
+4. PUT /qc/inspections/{id}
+5. DELETE /qc/inspections/{id}
+
+Payload:
+- inspection_number
+- inspection_date
+- product_id
+- quantity
+- sample_size
+- defect_found
+- status (passed|warning|failed)
+- inspector
+- notes
+- company_id
+
+K3. Certificates
+1. GET /qc/certificates
+2. GET /qc/certificates/{id}
+3. POST /qc/certificates
+4. PUT /qc/certificates/{id}
+5. DELETE /qc/certificates/{id}
+
+Payload:
+- certificate_number
+- certificate_date
+- product_id
+- batch_number
+- issued_by
+- valid_until
+- grade
+- status (active|expired)
+- inspection_id (opsional)
+- company_id
+
+K4. QC Reports
+1. GET /qc/reports/summary?company_id=&month=&year=
+2. GET /qc/reports/monthly?company_id=&year=
+3. GET /qc/reports/export-csv?company_id=&month=&year=
+4. GET /qc/reports/export-pdf?company_id=&month=&year=
+
+==================================================
+L. MODUL AUDIT LOG
+==================================================
+
+L1. Audit Logs
+1. GET /audit-logs
+Query:
+- company_id
+- search
+- action
+- status
+- module
+- from
+- to
+- page
+- per_page
+
+2. GET /audit-logs/{id}
+
+3. POST /audit-logs (opsional, jika log ditulis manual dari service tertentu)
+Payload:
+- event_time
+- user_id
+- user_name
+- action (CREATE|UPDATE|DELETE|VIEW|EXPORT)
+- module
+- reference
+- description
+- ip_address
+- status (success|failed)
+- changes_json
+- company_id
+
+L2. Audit Reports
+1. GET /audit-logs/reports/activity-summary?company_id=&year=
+2. GET /audit-logs/reports/module-usage?company_id=&year=
+3. GET /audit-logs/reports/action-types?company_id=&year=
+4. GET /audit-logs/reports/export-csv?company_id=&from=&to=
+5. GET /audit-logs/reports/export-pdf?company_id=&from=&to=
+
+==================================================
+M. CATATAN IMPLEMENTASI BACKEND
+==================================================
+
+1. Authorization:
+- Endpoint admin-only: /users, /permissions, /audit-logs, /companies (sesuaikan policy).
+- Endpoint modul mengikuti permission matrix company_module_permissions.
+
+2. Consistency naming:
+- Frontend saat ini campuran snake_case dan camelCase di data dummy.
+- Disarankan backend pakai snake_case di API payload.
+- Jika frontend tetap pakai camelCase, gunakan transformer di frontend atau backend resource.
+
+3. Pagination:
+- Semua endpoint list sebaiknya support page, per_page, search, sort.
+
+4. Export:
+- Endpoint export boleh return file stream langsung (CSV/PDF) atau return signed URL download.
+
+5. Multi-company:
+- Selalu hormati company_id aktif dari user/token.
+- Hindari user mengakses data company lain kecuali Super Admin.
+
+6. Logging:
+- Audit log disarankan otomatis dari middleware/service layer, bukan hanya dari request manual.
+
+==================================================
+N. PRIORITAS IMPLEMENTASI API (SARAN)
+==================================================
+
+Prioritas 1 (wajib agar aplikasi jalan):
+- auth
+- companies
+- users
+- permissions
+- roles/modules list
+
+Prioritas 2 (operasional inti):
+- purchasing
+- import
+- gudang
+- sales
+- finance
+- accounting
+
+Prioritas 3 (kontrol dan analitik):
+- qc
+- audit-log
+- report export CSV/PDF untuk semua modul
+
+Selesai.

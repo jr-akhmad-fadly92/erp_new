@@ -1,0 +1,48 @@
+MODUL PENGGUNA
+==============
+
+Tabel utama yang digunakan:
+- users
+- companies
+- roles
+- company_module_permissions (untuk preview modul akses)
+
+Struktur penting tabel users:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- role_id (bigint, FK -> roles.id)
+- name (varchar)
+- email (varchar, unique)
+- phone (varchar, nullable)
+- password (varchar)
+- status (enum: aktif, nonaktif)
+- last_login_at (datetime, nullable)
+- created_at
+- updated_at
+
+Tambahan opsional:
+
+A. Tabel: user_password_histories
+Tujuan:
+- Menyimpan histori perubahan password untuk audit internal.
+Kolom utama:
+- id (bigint, PK)
+- user_id (bigint, FK -> users.id)
+- changed_at (datetime)
+- changed_by (bigint, nullable, FK -> users.id)
+- created_at
+- updated_at
+
+B. Tabel: user_company_histories
+Tujuan:
+- Menyimpan histori perpindahan perusahaan user.
+Kolom utama:
+- id (bigint, PK)
+- user_id (bigint, FK -> users.id)
+- from_company_id (bigint, nullable, FK -> companies.id)
+- to_company_id (bigint, nullable, FK -> companies.id)
+- moved_at (datetime)
+- moved_by (bigint, nullable, FK -> users.id)
+- notes (text, nullable)
+- created_at
+- updated_at

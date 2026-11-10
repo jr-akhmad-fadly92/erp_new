@@ -1,0 +1,16 @@
+/vendor
+/node_modules
+/public/build
+/public/storage
+/storage/*.key
+/storage/app/public
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs
+/.idea
+/.vscode
+/.env
+.phpunit.result.cache
+npm-debug.log
+yarn-error.log

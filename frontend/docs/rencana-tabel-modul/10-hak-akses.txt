@@ -1,0 +1,22 @@
+MODUL HAK AKSES
+===============
+
+Tabel utama yang digunakan:
+- company_module_permissions
+- modules
+- roles
+- companies
+
+Struktur penting tabel company_module_permissions:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- module_id (bigint atau varchar key, FK -> modules.id / modules.key)
+- role_id (bigint, FK -> roles.id)
+- allowed (boolean)
+- created_at
+- updated_at
+
+Catatan implementasi:
+- Satu baris permission mewakili kombinasi company_id + module_id + role_id.
+- Untuk mencegah duplikasi, sebaiknya ada unique index pada kombinasi tersebut.
+- Tabel ini dipakai untuk matrix hak akses pada level perusahaan aktif.

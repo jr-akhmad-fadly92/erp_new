@@ -1,0 +1,54 @@
+MODUL FINANCE
+=============
+
+A. Tabel: finance_cash_bank_accounts
+Tujuan:
+- Menyimpan akun kas dan bank.
+Kolom utama:
+- id (bigint, PK)
+- account_code (varchar, unique)
+- account_name (varchar)
+- account_type (enum: kas, bank)
+- bank_name (varchar, nullable)
+- account_number (varchar, nullable)
+- currency (varchar(10))
+- balance (decimal)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: finance_cash_bank_transactions
+Tujuan:
+- Menyimpan transaksi kas masuk dan kas keluar.
+Kolom utama:
+- id (bigint, PK)
+- trx_number (varchar, unique)
+- trx_date (date)
+- account_id (bigint, FK -> finance_cash_bank_accounts.id)
+- trx_type (enum: masuk, keluar)
+- category (varchar)
+- reference (varchar, nullable)
+- description (text, nullable)
+- amount (decimal)
+- status (enum: draft, posted)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: finance_report_monthly
+Tujuan:
+- Menyimpan snapshot laporan bulanan bila ingin akses report cepat.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- revenue (decimal)
+- expense (decimal)
+- cash_in (decimal)
+- cash_out (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+Catatan laporan:
+- Tabel report bulanan bisa opsional. Jika tidak disimpan, laporan dapat dihitung dari transaksi dan jurnal.

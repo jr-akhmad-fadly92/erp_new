@@ -1,0 +1,76 @@
+MODUL GUDANG
+============
+
+A. Tabel: warehouse_locations
+Tujuan:
+- Menyimpan master gudang/lokasi penyimpanan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique, nullable)
+- name (varchar)
+- description (text, nullable)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: warehouse_stock_items
+Tujuan:
+- Menyimpan stok barang per gudang.
+Kolom utama:
+- id (bigint, PK)
+- sku (varchar)
+- item_name (varchar)
+- category (varchar, nullable)
+- warehouse_id (bigint, nullable, FK -> warehouse_locations.id)
+- warehouse_name (varchar, nullable)
+- stock_qty (decimal)
+- min_stock (decimal)
+- unit (varchar)
+- avg_cost (decimal)
+- status (enum: aman, minimum, habis)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: warehouse_mutations
+Tujuan:
+- Menyimpan mutasi stok antar gudang.
+Kolom utama:
+- id (bigint, PK)
+- mutation_number (varchar, unique)
+- mutation_date (date)
+- sku (varchar)
+- item_name (varchar)
+- from_warehouse_id (bigint, nullable)
+- from_warehouse_name (varchar)
+- to_warehouse_id (bigint, nullable)
+- to_warehouse_name (varchar)
+- qty (decimal)
+- unit (varchar)
+- status (enum: draft, posted)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: warehouse_stock_opnames
+Tujuan:
+- Menyimpan hasil opname stok.
+Kolom utama:
+- id (bigint, PK)
+- opname_number (varchar, unique)
+- opname_date (date)
+- warehouse_id (bigint, nullable)
+- warehouse_name (varchar)
+- sku (varchar)
+- item_name (varchar)
+- system_qty (decimal)
+- physical_qty (decimal)
+- difference_qty (decimal)
+- reason (text, nullable)
+- status (enum: review, adjusted, closed)
+- company_id (bigint, nullable)
+- created_at
+- updated_at

@@ -1,0 +1,82 @@
+MODUL UMUM MANAJEMEN AKSES DAN MASTER
+====================================
+
+A. Tabel: companies
+Tujuan:
+- Menyimpan master perusahaan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique, nullable)
+- name (varchar)
+- kota (varchar)
+- bidang (varchar, nullable)
+- alamat (text, nullable)
+- telepon (varchar, nullable)
+- npwp (varchar, nullable)
+- status (enum: aktif, trial, nonaktif)
+- modules (integer, default 0)
+- color (varchar, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+B. Tabel: roles
+Tujuan:
+- Menyimpan master role sistem.
+Kolom utama:
+- id (bigint, PK)
+- name (varchar)
+- short_code (varchar, nullable)
+- group_name (varchar, nullable)
+- color (varchar, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+C. Tabel: modules
+Tujuan:
+- Menyimpan master modul/menu sistem.
+Kolom utama:
+- id (bigint, PK)
+- key (varchar, unique)
+- label (varchar)
+- description (text, nullable)
+- group_name (varchar, nullable)
+- icon (varchar, nullable)
+- allowed_roles (json, nullable)
+- allowed_actions (json, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+D. Tabel: users
+Tujuan:
+- Menyimpan akun pengguna aplikasi.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- role_id (bigint, FK -> roles.id)
+- name (varchar)
+- email (varchar, unique)
+- phone (varchar, nullable)
+- password (varchar)
+- status (enum: aktif, nonaktif)
+- last_login_at (datetime, nullable)
+- created_at
+- updated_at
+
+E. Tabel: company_module_permissions
+Tujuan:
+- Menyimpan matrix hak akses per perusahaan, per modul, dan per role.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- module_id (bigint atau varchar key, FK -> modules.id / modules.key)
+- role_id (bigint, FK -> roles.id)
+- allowed (boolean)
+- created_at
+- updated_at
+
+Catatan umum:
+- Struktur ini mengikuti model backend yang sudah ada: Company, User, Module, dan CompanyModulePermission.
+- Jika ingin menyimpan riwayat pindah perusahaan user, bisa tambahkan tabel `user_company_histories`.

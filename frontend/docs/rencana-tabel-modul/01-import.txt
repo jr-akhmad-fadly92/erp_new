@@ -1,0 +1,73 @@
+MODUL IMPORT
+============
+
+A. Tabel: import_goods_receipts
+Tujuan:
+- Menyimpan penerimaan barang impor.
+Kolom utama:
+- id (bigint, PK)
+- receipt_number (varchar, unique)
+- po_number (varchar)
+- supplier_name (varchar)
+- receipt_date (date)
+- warehouse_name (varchar)
+- item_name (varchar)
+- qty_received (decimal)
+- unit (varchar)
+- status (enum: completed, partial, pending)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: import_clearances
+Tujuan:
+- Menyimpan proses clearance barang impor.
+Kolom utama:
+- id (bigint, PK)
+- clearance_number (varchar, unique)
+- bl_number (varchar)
+- vessel_name (varchar)
+- eta_date (date)
+- release_date (date, nullable)
+- ppjk (varchar, nullable)
+- customs_office (varchar, nullable)
+- status (enum: released, on-progress, hold)
+- clearance_cost (decimal)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: import_documents
+Tujuan:
+- Menyimpan dokumen pendukung impor.
+Kolom utama:
+- id (bigint, PK)
+- doc_number (varchar, unique)
+- clearance_id (bigint, FK -> import_clearances.id)
+- doc_type (varchar)
+- file_name (varchar)
+- file_path (varchar, nullable)
+- issue_date (date)
+- expire_date (date, nullable)
+- status (enum: valid, review, expired)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: import_clearance_reports_monthly
+Tujuan:
+- Menyimpan rekap clearance bulanan untuk laporan cepat.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- total_clearances (int)
+- total_cost (decimal)
+- released_count (int)
+- on_progress_count (int)
+- hold_count (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at

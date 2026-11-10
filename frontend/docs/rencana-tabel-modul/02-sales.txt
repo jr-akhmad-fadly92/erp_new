@@ -1,0 +1,71 @@
+MODUL SALES
+===========
+
+A. Tabel: sales_customers
+Tujuan:
+- Menyimpan master pelanggan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- city (varchar)
+- pic (varchar)
+- phone (varchar)
+- email (varchar, nullable)
+- status (enum: aktif, nonaktif)
+- credit_limit (decimal)
+- company_id (bigint, nullable jika multi-company)
+- created_at
+- updated_at
+
+B. Tabel: sales_orders
+Tujuan:
+- Menyimpan transaksi sales order.
+Kolom utama:
+- id (bigint, PK)
+- so_number (varchar, unique)
+- so_date (date)
+- customer_id (bigint, FK -> sales_customers.id)
+- item_name (varchar)
+- qty (decimal)
+- unit_price (decimal)
+- status (enum: draft, approved, closed)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: sales_targets
+Tujuan:
+- Menyimpan target penjualan per sales/periode.
+Kolom utama:
+- id (bigint, PK)
+- period (char(7) atau date referensi bulan)
+- sales_name (varchar)
+- region (varchar)
+- target_amount (decimal)
+- achieved_amount (decimal)
+- status (enum: on-track, under, achieved)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: sales_invoices
+Tujuan:
+- Menyimpan invoice penjualan.
+Kolom utama:
+- id (bigint, PK)
+- invoice_number (varchar, unique)
+- so_id (bigint, FK -> sales_orders.id)
+- customer_id (bigint, FK -> sales_customers.id)
+- invoice_date (date)
+- due_date (date)
+- total (decimal)
+- paid_amount (decimal)
+- status (enum: unpaid, partial, paid)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+Catatan laporan:
+- Laporan Sales bisa diambil langsung dari sales_invoices, atau dibuat view/materialized table untuk reporting bila data besar.

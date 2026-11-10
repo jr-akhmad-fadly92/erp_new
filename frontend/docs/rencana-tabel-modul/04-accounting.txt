@@ -1,0 +1,88 @@
+MODUL ACCOUNTING
+================
+
+A. Tabel: accounting_journals
+Tujuan:
+- Menyimpan header jurnal akuntansi.
+Kolom utama:
+- id (bigint, PK)
+- journal_number (varchar, unique)
+- journal_date (date)
+- description (text)
+- reference (varchar, nullable)
+- status (enum: draft, posted)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: accounting_journal_lines
+Tujuan:
+- Menyimpan detail debit dan kredit per jurnal.
+Kolom utama:
+- id (bigint, PK)
+- journal_id (bigint, FK -> accounting_journals.id)
+- line_no (int)
+- account_code (varchar)
+- account_name (varchar)
+- position (enum: debit, credit)
+- amount (decimal)
+- created_at
+- updated_at
+
+C. Tabel: accounting_chart_of_accounts
+Tujuan:
+- Menyimpan daftar akun akuntansi.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- type (enum: aset, liabilitas, ekuitas, pendapatan, beban)
+- balance (decimal)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: accounting_balance_sheet_snapshots
+Tujuan:
+- Menyimpan snapshot neraca per periode.
+Kolom utama:
+- id (bigint, PK)
+- period_end (date)
+- section (enum: aset_lancar, aset_tetap, liabilitas_lancar, ekuitas)
+- item_name (varchar)
+- amount (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+E. Tabel: accounting_income_statement_snapshots
+Tujuan:
+- Menyimpan snapshot laba/rugi per periode.
+Kolom utama:
+- id (bigint, PK)
+- period_end (date)
+- section (enum: pendapatan, harga_pokok, beban)
+- item_name (varchar)
+- amount (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+F. Tabel: accounting_financial_statement_monthly
+Tujuan:
+- Menyimpan summary bulanan untuk grafik dan tabel laporan.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- revenue (decimal)
+- cogs (decimal)
+- gross_profit (decimal)
+- operating_expense (decimal)
+- net_income (decimal)
+- total_asset (decimal)
+- total_liability (decimal)
+- total_equity (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at

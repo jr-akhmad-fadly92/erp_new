@@ -1,0 +1,62 @@
+MODUL AUDIT LOG
+===============
+
+A. Tabel: audit_logs
+Tujuan:
+- Menyimpan histori aktivitas user di sistem.
+Kolom utama:
+- id (bigint, PK)
+- event_time (datetime)
+- user_id (varchar atau bigint)
+- user_name (varchar)
+- action (enum: CREATE, UPDATE, DELETE, VIEW, EXPORT)
+- module (varchar)
+- reference (varchar, nullable)
+- description (text)
+- ip_address (varchar)
+- status (enum: success, failed)
+- changes_json (json, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: audit_activity_summary_monthly
+Tujuan:
+- Menyimpan agregasi aktivitas bulanan.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- creates (int)
+- updates (int)
+- deletes (int)
+- views (int)
+- exports (int)
+- total (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: audit_module_usage_monthly
+Tujuan:
+- Menyimpan agregasi penggunaan modul.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7), nullable)
+- module_name (varchar)
+- activities (int)
+- percentage (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: audit_action_type_summary
+Tujuan:
+- Menyimpan agregasi jumlah event per action.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7), nullable)
+- action (varchar)
+- count_total (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at

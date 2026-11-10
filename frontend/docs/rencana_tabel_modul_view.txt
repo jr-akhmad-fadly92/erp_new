@@ -1,0 +1,736 @@
+RENCANA TABEL UNTUK MASING-MASING MODUL VIEW
+===========================================
+
+Dokumen ini berisi rencana tabel backend berdasarkan struktur view dan data dummy pada frontend.
+Status: usulan awal, bisa disesuaikan saat implementasi API/backend final.
+
+==================================================
+0. MODUL UMUM MANAJEMEN AKSES DAN MASTER
+==================================================
+
+A. Tabel: companies
+Tujuan:
+- Menyimpan master perusahaan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique, nullable)
+- name (varchar)
+- kota (varchar)
+- bidang (varchar, nullable)
+- alamat (text, nullable)
+- telepon (varchar, nullable)
+- npwp (varchar, nullable)
+- status (enum: aktif, trial, nonaktif)
+- modules (integer, default 0)
+- color (varchar, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+B. Tabel: roles
+Tujuan:
+- Menyimpan master role sistem.
+Kolom utama:
+- id (bigint, PK)
+- name (varchar)
+- short_code (varchar, nullable)
+- group_name (varchar, nullable)
+- color (varchar, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+C. Tabel: modules
+Tujuan:
+- Menyimpan master modul/menu sistem.
+Kolom utama:
+- id (bigint, PK)
+- key (varchar, unique)
+- label (varchar)
+- description (text, nullable)
+- group_name (varchar, nullable)
+- icon (varchar, nullable)
+- allowed_roles (json, nullable)
+- allowed_actions (json, nullable)
+- is_active (boolean, default true)
+- created_at
+- updated_at
+
+D. Tabel: users
+Tujuan:
+- Menyimpan akun pengguna aplikasi.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- role_id (bigint, FK -> roles.id)
+- name (varchar)
+- email (varchar, unique)
+- phone (varchar, nullable)
+- password (varchar)
+- status (enum: aktif, nonaktif)
+- last_login_at (datetime, nullable)
+- created_at
+- updated_at
+
+E. Tabel: company_module_permissions
+Tujuan:
+- Menyimpan matrix hak akses per perusahaan, per modul, dan per role.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- module_id (bigint atau varchar key, FK -> modules.id / modules.key)
+- role_id (bigint, FK -> roles.id)
+- allowed (boolean)
+- created_at
+- updated_at
+
+Catatan umum:
+- Struktur di atas mengikuti model backend yang sudah ada: Company, User, Module, dan CompanyModulePermission.
+- Jika ingin menyimpan riwayat pindah perusahaan user, bisa tambahkan tabel `user_company_histories`.
+
+==================================================
+1. MODUL IMPORT
+==================================================
+
+A. Tabel: import_goods_receipts
+Tujuan:
+- Menyimpan penerimaan barang impor.
+Kolom utama:
+- id (bigint, PK)
+- receipt_number (varchar, unique)
+- po_number (varchar)
+- supplier_name (varchar)
+- receipt_date (date)
+- warehouse_name (varchar)
+- item_name (varchar)
+- qty_received (decimal)
+- unit (varchar)
+- status (enum: completed, partial, pending)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: import_clearances
+Tujuan:
+- Menyimpan proses clearance barang impor.
+Kolom utama:
+- id (bigint, PK)
+- clearance_number (varchar, unique)
+- bl_number (varchar)
+- vessel_name (varchar)
+- eta_date (date)
+- release_date (date, nullable)
+- ppjk (varchar, nullable)
+- customs_office (varchar, nullable)
+- status (enum: released, on-progress, hold)
+- clearance_cost (decimal)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: import_documents
+Tujuan:
+- Menyimpan dokumen pendukung impor.
+Kolom utama:
+- id (bigint, PK)
+- doc_number (varchar, unique)
+- clearance_id (bigint, FK -> import_clearances.id)
+- doc_type (varchar)
+- file_name (varchar)
+- file_path (varchar, nullable)
+- issue_date (date)
+- expire_date (date, nullable)
+- status (enum: valid, review, expired)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: import_clearance_reports_monthly
+Tujuan:
+- Menyimpan rekap clearance bulanan untuk laporan cepat.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- total_clearances (int)
+- total_cost (decimal)
+- released_count (int)
+- on_progress_count (int)
+- hold_count (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+2. MODUL SALES
+==================================================
+
+A. Tabel: sales_customers
+Tujuan:
+- Menyimpan master pelanggan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- city (varchar)
+- pic (varchar)
+- phone (varchar)
+- email (varchar, nullable)
+- status (enum: aktif, nonaktif)
+- credit_limit (decimal)
+- company_id (bigint, nullable jika multi-company)
+- created_at
+- updated_at
+
+B. Tabel: sales_orders
+Tujuan:
+- Menyimpan transaksi sales order.
+Kolom utama:
+- id (bigint, PK)
+- so_number (varchar, unique)
+- so_date (date)
+- customer_id (bigint, FK -> sales_customers.id)
+- item_name (varchar)
+- qty (decimal)
+- unit_price (decimal)
+- status (enum: draft, approved, closed)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: sales_targets
+Tujuan:
+- Menyimpan target penjualan per sales/periode.
+Kolom utama:
+- id (bigint, PK)
+- period (char(7) atau date referensi bulan)
+- sales_name (varchar)
+- region (varchar)
+- target_amount (decimal)
+- achieved_amount (decimal)
+- status (enum: on-track, under, achieved)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: sales_invoices
+Tujuan:
+- Menyimpan invoice penjualan.
+Kolom utama:
+- id (bigint, PK)
+- invoice_number (varchar, unique)
+- so_id (bigint, FK -> sales_orders.id)
+- customer_id (bigint, FK -> sales_customers.id)
+- invoice_date (date)
+- due_date (date)
+- total (decimal)
+- paid_amount (decimal)
+- status (enum: unpaid, partial, paid)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+Catatan laporan:
+- Laporan Sales bisa diambil langsung dari sales_invoices, atau dibuat view/materialized table untuk reporting bila data besar.
+
+==================================================
+3. MODUL FINANCE
+==================================================
+
+A. Tabel: finance_cash_bank_accounts
+Tujuan:
+- Menyimpan akun kas dan bank.
+Kolom utama:
+- id (bigint, PK)
+- account_code (varchar, unique)
+- account_name (varchar)
+- account_type (enum: kas, bank)
+- bank_name (varchar, nullable)
+- account_number (varchar, nullable)
+- currency (varchar(10))
+- balance (decimal)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: finance_cash_bank_transactions
+Tujuan:
+- Menyimpan transaksi kas masuk dan kas keluar.
+Kolom utama:
+- id (bigint, PK)
+- trx_number (varchar, unique)
+- trx_date (date)
+- account_id (bigint, FK -> finance_cash_bank_accounts.id)
+- trx_type (enum: masuk, keluar)
+- category (varchar)
+- reference (varchar, nullable)
+- description (text, nullable)
+- amount (decimal)
+- status (enum: draft, posted)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: finance_report_monthly
+Tujuan:
+- Menyimpan snapshot laporan bulanan bila ingin akses report cepat.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- revenue (decimal)
+- expense (decimal)
+- cash_in (decimal)
+- cash_out (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+Catatan laporan:
+- Tabel report bulanan bisa opsional. Jika tidak disimpan, laporan dapat dihitung dari transaksi dan jurnal.
+
+==================================================
+4. MODUL ACCOUNTING
+==================================================
+
+A. Tabel: accounting_journals
+Tujuan:
+- Menyimpan header jurnal akuntansi.
+Kolom utama:
+- id (bigint, PK)
+- journal_number (varchar, unique)
+- journal_date (date)
+- description (text)
+- reference (varchar, nullable)
+- status (enum: draft, posted)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: accounting_journal_lines
+Tujuan:
+- Menyimpan detail debit dan kredit per jurnal.
+Kolom utama:
+- id (bigint, PK)
+- journal_id (bigint, FK -> accounting_journals.id)
+- line_no (int)
+- account_code (varchar)
+- account_name (varchar)
+- position (enum: debit, credit)
+- amount (decimal)
+- created_at
+- updated_at
+
+C. Tabel: accounting_chart_of_accounts
+Tujuan:
+- Menyimpan daftar akun akuntansi.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- type (enum: aset, liabilitas, ekuitas, pendapatan, beban)
+- balance (decimal)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: accounting_balance_sheet_snapshots
+Tujuan:
+- Menyimpan snapshot neraca per periode.
+Kolom utama:
+- id (bigint, PK)
+- period_end (date)
+- section (enum: aset_lancar, aset_tetap, liabilitas_lancar, ekuitas)
+- item_name (varchar)
+- amount (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+E. Tabel: accounting_income_statement_snapshots
+Tujuan:
+- Menyimpan snapshot laba/rugi per periode.
+Kolom utama:
+- id (bigint, PK)
+- period_end (date)
+- section (enum: pendapatan, harga_pokok, beban)
+- item_name (varchar)
+- amount (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+F. Tabel: accounting_financial_statement_monthly
+Tujuan:
+- Menyimpan summary bulanan untuk grafik dan tabel laporan.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- revenue (decimal)
+- cogs (decimal)
+- gross_profit (decimal)
+- operating_expense (decimal)
+- net_income (decimal)
+- total_asset (decimal)
+- total_liability (decimal)
+- total_equity (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+5. MODUL QUALITY CONTROL
+==================================================
+
+A. Tabel: qc_products
+Tujuan:
+- Menyimpan master produk yang diperiksa QC.
+Kolom utama:
+- id (varchar atau bigint, PK)
+- product_code (varchar, unique, nullable jika id sudah berupa kode)
+- name (varchar)
+- category (varchar)
+- standard (varchar)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: qc_inspections
+Tujuan:
+- Menyimpan hasil inspeksi QC.
+Kolom utama:
+- id (bigint, PK)
+- inspection_number (varchar, unique)
+- inspection_date (date)
+- product_id (FK -> qc_products.id)
+- quantity (decimal)
+- sample_size (decimal)
+- defect_found (int)
+- status (enum: passed, warning, failed)
+- inspector (varchar)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: qc_certificates
+Tujuan:
+- Menyimpan sertifikat QC yang diterbitkan.
+Kolom utama:
+- id (bigint, PK)
+- certificate_number (varchar, unique)
+- certificate_date (date)
+- product_id (FK -> qc_products.id)
+- batch_number (varchar)
+- issued_by (varchar)
+- valid_until (date)
+- grade (varchar)
+- status (enum: active, expired)
+- inspection_id (bigint, nullable, FK -> qc_inspections.id)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: qc_inspection_summary_monthly
+Tujuan:
+- Menyimpan ringkasan bulanan untuk grafik QC.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- total_inspections (int)
+- passed (int)
+- warning (int)
+- failed (int)
+- pass_rate (decimal)
+- defect_rate (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+6. MODUL AUDIT LOG
+==================================================
+
+A. Tabel: audit_logs
+Tujuan:
+- Menyimpan histori aktivitas user di sistem.
+Kolom utama:
+- id (bigint, PK)
+- event_time (datetime)
+- user_id (varchar atau bigint)
+- user_name (varchar)
+- action (enum: CREATE, UPDATE, DELETE, VIEW, EXPORT)
+- module (varchar)
+- reference (varchar, nullable)
+- description (text)
+- ip_address (varchar)
+- status (enum: success, failed)
+- changes_json (json, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: audit_activity_summary_monthly
+Tujuan:
+- Menyimpan agregasi aktivitas bulanan.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7))
+- creates (int)
+- updates (int)
+- deletes (int)
+- views (int)
+- exports (int)
+- total (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: audit_module_usage_monthly
+Tujuan:
+- Menyimpan agregasi penggunaan modul.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7), nullable)
+- module_name (varchar)
+- activities (int)
+- percentage (decimal)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: audit_action_type_summary
+Tujuan:
+- Menyimpan agregasi jumlah event per action.
+Kolom utama:
+- id (bigint, PK)
+- month_period (char(7), nullable)
+- action (varchar)
+- count_total (int)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+7. MODUL GUDANG
+==================================================
+
+A. Tabel: warehouse_locations
+Tujuan:
+- Menyimpan master gudang/lokasi penyimpanan.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique, nullable)
+- name (varchar)
+- description (text, nullable)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: warehouse_stock_items
+Tujuan:
+- Menyimpan stok barang per gudang.
+Kolom utama:
+- id (bigint, PK)
+- sku (varchar)
+- item_name (varchar)
+- category (varchar, nullable)
+- warehouse_id (bigint, nullable, FK -> warehouse_locations.id)
+- warehouse_name (varchar, nullable)
+- stock_qty (decimal)
+- min_stock (decimal)
+- unit (varchar)
+- avg_cost (decimal)
+- status (enum: aman, minimum, habis)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: warehouse_mutations
+Tujuan:
+- Menyimpan mutasi stok antar gudang.
+Kolom utama:
+- id (bigint, PK)
+- mutation_number (varchar, unique)
+- mutation_date (date)
+- sku (varchar)
+- item_name (varchar)
+- from_warehouse_id (bigint, nullable)
+- from_warehouse_name (varchar)
+- to_warehouse_id (bigint, nullable)
+- to_warehouse_name (varchar)
+- qty (decimal)
+- unit (varchar)
+- status (enum: draft, posted)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+D. Tabel: warehouse_stock_opnames
+Tujuan:
+- Menyimpan hasil opname stok.
+Kolom utama:
+- id (bigint, PK)
+- opname_number (varchar, unique)
+- opname_date (date)
+- warehouse_id (bigint, nullable)
+- warehouse_name (varchar)
+- sku (varchar)
+- item_name (varchar)
+- system_qty (decimal)
+- physical_qty (decimal)
+- difference_qty (decimal)
+- reason (text, nullable)
+- status (enum: review, adjusted, closed)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+8. MODUL PURCHASING
+==================================================
+
+A. Tabel: purchasing_suppliers
+Tujuan:
+- Menyimpan master supplier.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- pic (varchar, nullable)
+- phone (varchar, nullable)
+- email (varchar, nullable)
+- city (varchar, nullable)
+- address (text, nullable)
+- payment_term (varchar, nullable)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: purchasing_purchase_orders
+Tujuan:
+- Menyimpan purchase order.
+Kolom utama:
+- id (bigint, PK)
+- po_number (varchar, unique)
+- supplier_id (bigint, FK -> purchasing_suppliers.id)
+- po_date (date)
+- expected_date (date, nullable)
+- item_name (varchar)
+- qty (decimal)
+- unit_price (decimal)
+- status (enum: draft, sent, approved, closed)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: purchasing_invoices
+Tujuan:
+- Menyimpan invoice pembelian.
+Kolom utama:
+- id (bigint, PK)
+- invoice_number (varchar, unique)
+- po_id (bigint, FK -> purchasing_purchase_orders.id)
+- supplier_id (bigint, FK -> purchasing_suppliers.id)
+- invoice_date (date)
+- due_date (date)
+- total (decimal)
+- paid_amount (decimal)
+- status (enum: unpaid, partial, paid, overdue)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+==================================================
+9. MODUL PENGGUNA
+==================================================
+
+Tabel utama yang digunakan:
+- `users`
+- `companies`
+- `roles`
+- `company_module_permissions` (untuk preview modul akses)
+
+Tambahan opsional:
+
+A. Tabel: user_password_histories
+Tujuan:
+- Menyimpan histori perubahan password untuk audit internal.
+Kolom utama:
+- id (bigint, PK)
+- user_id (bigint, FK -> users.id)
+- changed_at (datetime)
+- changed_by (bigint, nullable, FK -> users.id)
+- created_at
+- updated_at
+
+B. Tabel: user_company_histories
+Tujuan:
+- Menyimpan histori perpindahan perusahaan user.
+Kolom utama:
+- id (bigint, PK)
+- user_id (bigint, FK -> users.id)
+- from_company_id (bigint, nullable, FK -> companies.id)
+- to_company_id (bigint, nullable, FK -> companies.id)
+- moved_at (datetime)
+- moved_by (bigint, nullable, FK -> users.id)
+- notes (text, nullable)
+- created_at
+- updated_at
+
+==================================================
+10. MODUL HAK AKSES
+==================================================
+
+Tabel utama yang digunakan:
+- `company_module_permissions`
+- `modules`
+- `roles`
+- `companies`
+
+Catatan implementasi:
+- Satu baris permission mewakili kombinasi `company_id + module_id + role_id`.
+- Untuk mencegah duplikasi, sebaiknya ada unique index pada kombinasi tersebut.
+
+==================================================
+11. MODUL PERUSAHAAN
+==================================================
+
+Tabel utama yang digunakan:
+- `companies`
+- `users` (untuk menghitung jumlah user per perusahaan)
+- `company_module_permissions` atau tabel relasi modul perusahaan bila ingin menghitung `modules` secara real
+
+Tambahan opsional:
+
+A. Tabel: company_module_subscriptions
+Tujuan:
+- Menyimpan modul yang aktif untuk tiap perusahaan bila angka `modules` tidak ingin disimpan manual.
+Kolom utama:
+- id (bigint, PK)
+- company_id (bigint, FK -> companies.id)
+- module_id (bigint atau varchar key, FK -> modules.id / modules.key)
+- is_active (boolean)
+- activated_at (datetime, nullable)
+- expired_at (datetime, nullable)
+- created_at
+- updated_at
+
+==================================================
+SARAN UMUM RELASI DAN IMPLEMENTASI
+==================================================
+- Semua tabel transaksi sebaiknya memiliki `company_id` jika aplikasi mendukung multi perusahaan.
+- Untuk kebutuhan soft delete, pertimbangkan kolom `deleted_at` pada tabel master/transaksi.
+- Untuk kecepatan laporan, modul Finance, Accounting, QC, dan Audit Log cocok memakai tabel summary bulanan.
+- Untuk Accounting, model terbaik adalah memisahkan header jurnal dan detail jurnal, bukan satu tabel campur debit/kredit.
+- Untuk Audit Log, kolom perubahan lebih aman disimpan dalam JSON agar fleksibel.

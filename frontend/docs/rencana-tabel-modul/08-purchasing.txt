@@ -1,0 +1,56 @@
+MODUL PURCHASING
+================
+
+A. Tabel: purchasing_suppliers
+Tujuan:
+- Menyimpan master supplier.
+Kolom utama:
+- id (bigint, PK)
+- code (varchar, unique)
+- name (varchar)
+- pic (varchar, nullable)
+- phone (varchar, nullable)
+- email (varchar, nullable)
+- city (varchar, nullable)
+- address (text, nullable)
+- payment_term (varchar, nullable)
+- status (enum: aktif, nonaktif)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+B. Tabel: purchasing_purchase_orders
+Tujuan:
+- Menyimpan purchase order.
+Kolom utama:
+- id (bigint, PK)
+- po_number (varchar, unique)
+- supplier_id (bigint, FK -> purchasing_suppliers.id)
+- po_date (date)
+- expected_date (date, nullable)
+- item_name (varchar)
+- qty (decimal)
+- unit_price (decimal)
+- status (enum: draft, sent, approved, closed)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
+
+C. Tabel: purchasing_invoices
+Tujuan:
+- Menyimpan invoice pembelian.
+Kolom utama:
+- id (bigint, PK)
+- invoice_number (varchar, unique)
+- po_id (bigint, FK -> purchasing_purchase_orders.id)
+- supplier_id (bigint, FK -> purchasing_suppliers.id)
+- invoice_date (date)
+- due_date (date)
+- total (decimal)
+- paid_amount (decimal)
+- status (enum: unpaid, partial, paid, overdue)
+- notes (text, nullable)
+- company_id (bigint, nullable)
+- created_at
+- updated_at
